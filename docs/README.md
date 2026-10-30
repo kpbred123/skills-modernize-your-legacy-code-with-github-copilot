@@ -86,3 +86,15 @@ end
 end
 Main-->>User: Display goodbye message
 ```
+
+## Node.js accounting application
+
+The equivalent interactive application is in `src/accounting/index.js`. Run it from the repository root with:
+
+```sh
+cd src/accounting
+npm install
+npm start
+```
+
+The application retains the same four menu choices and the single in-memory balance initialized to `1000.00`. Amounts are represented internally as integer cents to avoid floating-point rounding; the balance is not persisted after the process exits. Input is limited to non-negative amounts with up to two decimal places, and credits that would exceed `999999.99` are rejected to protect the numeric balance range. Confirm these validation messages and limits with stakeholders if they need to differ from the legacy system's behavior for invalid or out-of-range input.
