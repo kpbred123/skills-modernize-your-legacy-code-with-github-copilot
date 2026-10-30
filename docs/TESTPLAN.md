@@ -1,0 +1,26 @@
+# COBOL Account Management Test Plan
+
+## Purpose and scope
+
+Use this plan to validate the current account-management behavior with business stakeholders and as a baseline for unit and integration tests during the Node.js transformation. These cases describe the existing single-account COBOL application; they do not imply additional account policies.
+
+Run each case in a fresh application process unless its steps explicitly use multiple operations in one run. The balance starts at `1000.00` for each process and is held in working storage, so changes are shared during that run but are not saved after the process ends.
+
+Amounts in the cases are non-negative and within the COBOL amount field's capacity. The current program does not validate that amounts are positive, and behavior for negative, non-numeric, or out-of-range input is not defined by the documented business rules. Confirm expected behavior for those inputs with stakeholders before implementing them in Node.js.
+
+| Test Case ID | Test Case Description | Pre-conditions | Test Steps | Expected Result | Actual Result | Status (Pass/Fail) | Comments |
+|---|---|---|---|---|---|---|---|
+| COBOL-TC-001 | Initialize account balance | Start a new application process. | 1. Choose **View Balance**. | The displayed balance is `1000.00`. |  |  | Confirms the initial value provided by the data program. |
+| COBOL-TC-002 | View balance without changing it | Start a new application process. | 1. Choose **View Balance** twice. | Both views display `1000.00`; viewing does not change the balance. |  |  |  |
+| COBOL-TC-003 | Credit a whole-number amount | Start a new application process. | 1. Choose **Credit Account** and enter `200`. 2. Choose **View Balance**. | The credit is accepted; the new and subsequently viewed balance is `1200.00`. |  |  | Amount is within the supported numeric field. |
+| COBOL-TC-004 | Credit an amount with cents | Start a new application process. | 1. Choose **Credit Account** and enter `25.75`. 2. Choose **View Balance**. | The credit is accepted; the new and subsequently viewed balance is `1025.75`. |  |  | Confirms two-decimal fractional amounts. |
+| COBOL-TC-005 | Apply multiple credits to the shared balance | Start a new application process. | 1. Credit `100`. 2. Credit `50`. 3. Choose **View Balance**. | Both credits are applied in sequence; the final balance is `1150.00`. |  |  | Confirms that operations use the balance stored by earlier operations in the same run. |
+| COBOL-TC-006 | Debit less than the available balance | Start a new application process. | 1. Choose **Debit Account** and enter `250`. 2. Choose **View Balance**. | The debit is accepted; the new and subsequently viewed balance is `750.00`. |  |  |  |
+| COBOL-TC-007 | Debit the exact available balance | Start a new application process. | 1. Choose **Debit Account** and enter `1000`. 2. Choose **View Balance**. | The debit is accepted because the balance is equal to the requested amount; the balance is `0.00`. |  |  | Confirms the inclusive balance-at-least-amount rule. |
+| COBOL-TC-008 | Reject a debit greater than the available balance | Start a new application process. | 1. Choose **Debit Account** and enter `1000.01`. 2. Choose **View Balance**. | An insufficient-funds message is displayed; the debit is not applied and the balance remains `1000.00`. |  |  |  |
+| COBOL-TC-009 | Debit zero | Start a new application process. | 1. Choose **Debit Account** and enter `0`. 2. Choose **View Balance**. | The current implementation accepts the debit; the balance remains `1000.00`. |  |  | Characterizes current behavior. Confirm whether zero-value debits should be allowed in the Node.js application. |
+| COBOL-TC-010 | Credit zero | Start a new application process. | 1. Choose **Credit Account** and enter `0`. 2. Choose **View Balance**. | The current implementation reports the credit and the balance remains `1000.00`. |  |  | Characterizes current behavior. Confirm whether zero-value credits should be allowed in the Node.js application. |
+| COBOL-TC-011 | Reject an invalid numeric menu choice | Start a new application process. | 1. Enter menu choice `5`. 2. Choose **View Balance** when the menu is displayed again. | An invalid-choice message is displayed, the menu is presented again, and the balance remains `1000.00`. |  |  | Covers a numeric choice outside the listed options. |
+| COBOL-TC-012 | Exit the application | Start a new application process. | 1. Enter menu choice `4`. | The menu loop ends and the goodbye message is displayed. |  |  |  |
+| COBOL-TC-013 | Preserve updates across mixed operations in one run | Start a new application process. | 1. Credit `200`. 2. Debit `50`. 3. Choose **View Balance**. | The final balance is `1150.00`; each operation uses the latest stored balance. |  |  | Integration case spanning menu, operations, and in-memory data storage. |
+| COBOL-TC-014 | Reset the balance between application runs | Complete a run in which the balance is changed, then start a new process. | 1. In the first run, credit `200` and exit. 2. Start a new run. 3. Choose **View Balance**. | The new process displays `1000.00`; the prior run's update was not persisted. |  |  | Confirms the current in-memory-only storage scope, not durable account storage. |
