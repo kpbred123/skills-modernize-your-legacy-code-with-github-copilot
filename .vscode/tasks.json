@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run COBOL Account Management App",
+			"type": "shell",
+			"command": "cobc -x -o /tmp/cobol-account-management src/cobol/main.cob src/cobol/operations.cob src/cobol/data.cob && /tmp/cobol-account-management",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
